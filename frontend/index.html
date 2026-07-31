@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TaskFlow AI — Make work flow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      :root {
+        --panel-shadow: 0 16px 40px rgba(94, 70, 160, 0.08);
+        --soft-purple: #f5efff;
+      }
+
+      body {
+        background:
+          radial-gradient(circle at top left, rgba(124, 58, 237, 0.12), transparent 32%),
+          linear-gradient(135deg, #f8f5ff 0%, #fdfdff 48%, #f5f8ff 100%);
+        color: #2d2545;
+        font-size: 14px;
+      }
+
+      .app-shell {
+        gap: 18px;
+        padding: 18px 18px 18px 0;
+      }
+
+      .sidebar {
+        width: 268px;
+        border: 0;
+        border-radius: 0 24px 24px 0;
+        box-shadow: 0 20px 44px rgba(71, 53, 128, 0.12);
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        padding: 6px 10px 24px;
+      }
+
+      .workspace,
+      .nav-item,
+      .profile,
+      .icon-btn,
+      .help,
+      .date-select,
+      .outline-btn,
+      .primary-btn,
+      .fab,
+      .suggestion,
+      .mini-metric,
+      .setting,
+      .toggle {
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+      }
+
+      .workspace:hover,
+      .nav-item:hover,
+      .profile:hover,
+      .icon-btn:hover,
+      .help:hover,
+      .date-select:hover,
+      .outline-btn:hover,
+      .primary-btn:hover,
+      .fab:hover,
+      .suggestion:hover,
+      .mini-metric:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 20px rgba(92, 70, 161, 0.12);
+      }
+
+      .main {
+        margin-left: 268px;
+        width: calc(100% - 268px);
+        padding: 0 8px 24px 0;
+      }
+
+      .topbar {
+        margin-bottom: 16px;
+        padding: 14px 18px;
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(16px);
+        box-shadow: 0 10px 30px rgba(76, 60, 128, 0.08);
+      }
+
+      #content {
+        padding-bottom: 96px;
+      }
+
+      .page-title {
+        margin-bottom: 18px;
+      }
+
+      .page-title h1 {
+        letter-spacing: -0.03em;
+      }
+
+      .page-title .sub {
+        margin-top: 6px;
+      }
+
+      .panel,
+      .stat,
+      .focus-card,
+      .profile-card,
+      .settings-list .setting,
+      .task-row,
+      .trow {
+        border: 1px solid rgba(120, 97, 185, 0.08);
+        box-shadow: var(--panel-shadow);
+      }
+
+      .panel {
+        border-radius: 18px;
+      }
+
+      .stat {
+        border-radius: 18px;
+        background: linear-gradient(145deg, #ffffff 0%, #f7f2ff 100%);
+      }
+
+      .stat strong {
+        font-size: 24px;
+      }
+
+      .check {
+        border: 2px solid #d9cffb;
+        background: #fff;
+        width: 20px;
+        height: 20px;
+        box-shadow: inset 0 0 0 2px #fff;
+      }
+
+      .check.done {
+        background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+        border-color: #7c3aed;
+      }
+
+      .task-row,
+      .trow {
+        border-radius: 14px;
+        margin-bottom: 8px;
+        padding: 12px 14px;
+      }
+
+      .trow:hover,
+      .task-row:hover {
+        background: #fcfbff;
+      }
+
+      .badge {
+        border-radius: 999px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+      }
+
+      .primary-btn,
+      .fab {
+        background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+        box-shadow: 0 10px 24px rgba(124, 58, 237, 0.25);
+      }
+
+      .outline-btn {
+        border-color: #e3dcf8;
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .focus-card {
+        background: linear-gradient(135deg, #291b4f 0%, #4f2f8f 100%);
+        color: white;
+      }
+
+      .focus-card button {
+        margin-top: 10px;
+        background: rgba(255, 255, 255, 0.14);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .calendar-panel {
+        background: linear-gradient(180deg, #ffffff 0%, #f9f6ff 100%);
+      }
+
+      .cal-day {
+        border-radius: 10px;
+        margin: 3px;
+        background: rgba(255, 255, 255, 0.65);
+      }
+
+      .cal-day.today b {
+        box-shadow: 0 6px 16px rgba(124, 58, 237, 0.24);
+      }
+
+      .suggestion {
+        border-radius: 14px;
+        border: 1px solid #ece4ff;
+        background: white;
+      }
+
+      .timer-ring {
+        box-shadow: inset 0 0 0 12px rgba(124, 58, 237, 0.08), 0 18px 36px rgba(115, 85, 184, 0.14);
+      }
+
+      .toast {
+        right: 24px;
+        bottom: 24px;
+        border-radius: 999px;
+        box-shadow: 0 12px 30px rgba(71, 53, 128, 0.18);
+      }
+
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(24, 18, 46, 0.55);
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        z-index: 30;
+      }
+
+      .modal-backdrop[hidden] {
+        display: none !important;
+      }
+
+      .task-modal {
+        width: min(100%, 560px);
+        background: white;
+        border-radius: 24px;
+        box-shadow: 0 24px 60px rgba(23, 15, 44, 0.24);
+        padding: 22px;
+        border: 1px solid rgba(124, 58, 237, 0.1);
+      }
+
+      .task-modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 16px;
+      }
+
+      .task-modal-header h3 {
+        margin: 4px 0 0;
+        font-size: 22px;
+      }
+
+      .task-modal-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .task-modal-form label {
+        display: grid;
+        gap: 6px;
+        font-weight: 600;
+        color: #564b70;
+      }
+
+      .task-modal-form input,
+      .task-modal-form textarea,
+      .task-modal-form select {
+        border: 1px solid #e2dcf6;
+        border-radius: 12px;
+        padding: 11px 12px;
+        font: inherit;
+        color: #2f2647;
+        background: #fcfbff;
+      }
+
+      .task-modal-form textarea {
+        resize: vertical;
+        min-height: 92px;
+      }
+
+      .task-modal-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .task-modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 900px) {
+        .app-shell {
+          padding: 12px;
+        }
+
+        .sidebar {
+          width: 220px;
+        }
+
+        .main {
+          margin-left: 220px;
+          width: calc(100% - 220px);
+        }
+      }
+
+      @media (max-width: 650px) {
+        .sidebar {
+          border-radius: 0 20px 20px 0;
+        }
+
+        .main {
+          margin-left: 0;
+          width: 100%;
+          padding: 0 0 24px;
+        }
+
+        .topbar {
+          border-radius: 14px;
+          margin-bottom: 12px;
+        }
+
+        .page {
+          padding: 4px 2px 88px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar">
+        <div class="brand"><span class="brand-mark"><i data-lucide="sparkles"></i></span><span>TaskFlow <b>AI</b></span></div>
+        <button class="workspace"><span class="avatar tiny">A</span><span>Aryan's workspace</span><i data-lucide="chevrons-up-down"></i></button>
+        <nav class="nav">
+          <p>WORKSPACE</p>
+          <button class="nav-item active" data-page="dashboard"><i data-lucide="layout-dashboard"></i><span>Dashboard</span><kbd>⌘ D</kbd></button>
+          <button class="nav-item" data-page="tasks"><i data-lucide="check-square"></i><span>My tasks</span><em>4</em></button>
+          <button class="nav-item" data-page="calendar"><i data-lucide="calendar-days"></i><span>Calendar</span></button>
+          <button class="nav-item" data-page="analytics"><i data-lucide="chart-no-axes-combined"></i><span>Analytics</span></button>
+          <p class="nav-gap">PRODUCTIVITY</p>
+          <button class="nav-item" data-page="pomodoro"><i data-lucide="timer-reset"></i><span>Pomodoro</span><span class="dot"></span></button>
+          <button class="nav-item" data-page="archive"><i data-lucide="archive"></i><span>Archive</span></button>
+        </nav>
+        <div class="sidebar-bottom">
+          <button class="nav-item" data-page="settings"><i data-lucide="settings-2"></i><span>Settings</span></button>
+          <button class="profile" data-page="profile"><span class="avatar">AS</span><span><b>Aryan Sharma</b><small>Pro plan</small></span><i data-lucide="more-horizontal"></i></button>
+        </div>
+      </aside>
+      <main class="main">
+        <header class="topbar">
+          <button class="mobile-menu" id="menuBtn"><i data-lucide="menu"></i></button>
+          <div class="crumb"><span id="crumb">Dashboard</span><span class="slash">/</span><span class="date">Thursday, March 7</span></div>
+          <div class="top-actions"><button class="icon-btn"><i data-lucide="search"></i></button><button class="icon-btn notification"><i data-lucide="bell"></i><b></b></button><button class="help"><i data-lucide="circle-help"></i> Help</button></div>
+        </header>
+        <div id="content"></div>
+      </main>
+    </div>
+    <button class="fab" id="addTask"><i data-lucide="plus"></i><span>New task</span></button>
+    <div class="toast" id="toast"><i data-lucide="check-circle-2"></i> Task added to your inbox</div>
+    <div class="modal-backdrop" id="taskModalBackdrop" hidden>
+      <div class="task-modal" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+        <div class="task-modal-header">
+          <div>
+            <p class="eyebrow">NEW TASK</p>
+            <h3 id="taskModalTitle">Create a task</h3>
+          </div>
+          <button class="icon-btn" id="closeTaskModal" type="button" aria-label="Close"><i data-lucide="x"></i></button>
+        </div>
+        <form id="taskForm" class="task-modal-form">
+          <label>
+            <span>Title</span>
+            <input id="taskTitle" name="title" placeholder="What do you want to focus on?" required />
+          </label>
+          <label>
+            <span>Description</span>
+            <textarea id="taskDescription" name="description" rows="3" placeholder="Add context, notes, or goals"></textarea>
+          </label>
+          <div class="task-modal-grid">
+            <label>
+              <span>Category</span>
+              <select id="taskCategory" name="category">
+                <option value="Personal">Personal</option>
+                <option value="Work">Work</option>
+                <option value="Study">Study</option>
+                <option value="Health">Health</option>
+              </select>
+            </label>
+            <label>
+              <span>Priority</span>
+              <select id="taskPriority" name="priority">
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </label>
+          </div>
+          <div class="task-modal-grid">
+            <label>
+              <span>Due date</span>
+              <input id="taskDueDate" name="dueDate" type="date" />
+            </label>
+            <label>
+              <span>Time</span>
+              <input id="taskTime" name="time" type="text" placeholder="Today" />
+            </label>
+          </div>
+          <div class="task-modal-actions">
+            <button class="outline-btn" id="cancelTaskModal" type="button">Cancel</button>
+            <button class="primary-btn" type="submit">Add task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="date-utils.js"></script>
+    <script src="app.js"></script>
+    <script src="analytics-category-update.js"></script>
+  </body>
+</html>
