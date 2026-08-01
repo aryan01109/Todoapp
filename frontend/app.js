@@ -214,7 +214,7 @@ async function deleteTask(id) {
     await loadTasks();
     showToast('Task removed');
   } catch (error) {
-    tasks = tasks.filter(task => task.id !== id);
+    tasks = tasks.filter(task => String(task.id) !== String(id));
     summary = calculateSummary();
     saveOfflineTasks();
     render(currentPage);
