@@ -189,7 +189,7 @@ async function addTask(taskInput) {
 }
 
 async function toggleTask(id) {
-  const task = tasks.find(item => item.id === id);
+  const task = tasks.find(item => String(item.id) === String(id));
   if (!task) return;
   try {
     const response = await fetch(`/api/tasks/${id}`, {
@@ -239,13 +239,13 @@ function bindPageActions() {
 
   document.querySelectorAll('[data-action="toggle"]').forEach(button => {
     button.addEventListener('click', async () => {
-      await toggleTask(Number(button.dataset.taskId));
+      await toggleTask(button.dataset.taskId);
     });
   });
 
   document.querySelectorAll('[data-action="delete"]').forEach(button => {
     button.addEventListener('click', async () => {
-      await deleteTask(Number(button.dataset.taskId));
+      await deleteTask(button.dataset.taskId);
     });
   });
 

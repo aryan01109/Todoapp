@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 
 // Bind publicly in cloud hosts; localhost still works for local development.
 const hostname = process.env.HOST || '0.0.0.0';
@@ -44,6 +45,29 @@ let tasks = [
     completed: false
   }
 ];
+
+const usingMongo = Boolean(process.env.MONGODB_URI);
+const taskSchema = new mongoose.Schema({
+  title: { type: String, required: true },
+  description: { type: String, default: '' },
+  category: { type: String, default: 'Personal' },
+  priority: { type: String, default: 'medium' },
+  time: { type: String, default: 'Today' },
+  dueDate: { type: String, default: null },
+  completed: { type: Boolean, default: false }
+}, { timestamps: true });
+const Task = mongoose.models.Task || mongoose.model('Task', taskSchema);
+
+function serializeTask(task) {
+  const item = task.toObject ? task.toObject() : task;
+  return { ...item, id: String(item._id || item.id), _id: undefined, __v: undefined };
+}
+
+async function getTasks() {
+  if (!usingMongo) return tasks;
+  const documents = await Task.find().sort({ createdAt: -1 }).lean();
+  return documents.map(serializeTask);
+}
 
 function setCorsHeaders(res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -91,11 +115,11 @@ function serveStaticFile(res, filePath) {
   });
 }
 
-function getTaskSummary() {
+function getTaskSummary(taskList = tasks) {
   return {
-    total: tasks.length,
-    completed: tasks.filter(task => task.completed).length,
-    pending: tasks.filter(task => !task.completed).length,
+    total: taskList.length,
+    completed: taskList.filter(task => task.completed).length,
+    pending: taskList.filter(task => !task.completed).length,
     overdue: 2
   };
 }
@@ -111,20 +135,21 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname === '/api/tasks') {
-    sendJson(res, 200, { tasks, summary: getTaskSummary() });
+    const currentTasks = await getTasks();
+    sendJson(res, 200, { tasks: currentTasks, summary: getTaskSummary(currentTasks) });
     return;
   }
 
   if (req.method === 'GET' && url.pathname === '/api/tasks/summary') {
-    sendJson(res, 200, getTaskSummary());
+    const currentTasks = await getTasks();
+    sendJson(res, 200, getTaskSummary(currentTasks));
     return;
   }
 
   if (req.method === 'POST' && url.pathname === '/api/tasks') {
     const body = await readBody(req);
     const data = body ? JSON.parse(body) : {};
-    const task = {
-      id: Date.now(),
+    const taskData = {
       title: data.title || 'Untitled task',
       description: data.description || '',
       category: data.category || 'Personal',
@@ -133,30 +158,46 @@ const server = http.createServer(async (req, res) => {
       dueDate: data.dueDate || null,
       completed: Boolean(data.completed)
     };
-    tasks.unshift(task);
-    sendJson(res, 201, task);
+    if (usingMongo) {
+      const task = serializeTask(await Task.create(taskData));
+      sendJson(res, 201, task);
+    } else {
+      const task = { id: Date.now(), ...taskData };
+      tasks.unshift(task);
+      sendJson(res, 201, task);
+    }
     return;
   }
 
   if (req.method === 'PATCH' && url.pathname.startsWith('/api/tasks/')) {
-    const id = Number(url.pathname.split('/').pop());
+    const id = url.pathname.split('/').pop();
     const body = await readBody(req);
     const data = body ? JSON.parse(body) : {};
-    const task = tasks.find(item => item.id === id);
+    const task = usingMongo
+      ? await Task.findByIdAndUpdate(id, data, { new: true, runValidators: true })
+      : tasks.find(item => item.id === Number(id));
 
     if (!task) {
       sendJson(res, 404, { error: 'Task not found' });
       return;
     }
 
-    Object.assign(task, data);
-    sendJson(res, 200, task);
+    if (!usingMongo) Object.assign(task, data);
+    sendJson(res, 200, usingMongo ? serializeTask(task) : task);
     return;
   }
 
   if (req.method === 'DELETE' && url.pathname.startsWith('/api/tasks/')) {
-    const id = Number(url.pathname.split('/').pop());
-    tasks = tasks.filter(task => task.id !== id);
+    const id = url.pathname.split('/').pop();
+    if (usingMongo) {
+      const result = await Task.deleteOne({ _id: id });
+      if (!result.deletedCount) {
+        sendJson(res, 404, { error: 'Task not found' });
+        return;
+      }
+    } else {
+      tasks = tasks.filter(task => task.id !== Number(id));
+    }
     sendJson(res, 200, { success: true, id });
     return;
   }
@@ -180,9 +221,20 @@ const server = http.createServer(async (req, res) => {
   sendJson(res, 404, { error: 'Not found' });
 });
 
+async function startServer() {
+  if (usingMongo) {
+    await mongoose.connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 10000 });
+    console.log('MongoDB connected');
+  } else {
+    console.warn('MONGODB_URI is not set; running with temporary in-memory data.');
+  }
+  server.listen(port, hostname, () => console.log(`TaskFlow backend running on port ${port}`));
+}
+
 if (require.main === module) {
-  server.listen(port, hostname, () => {
-    console.log(`TaskFlow backend running at http://${hostname}:${port}`);
+  startServer().catch(error => {
+    console.error('Unable to start TaskFlow:', error.message);
+    process.exit(1);
   });
 }
 

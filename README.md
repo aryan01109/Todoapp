@@ -1,6 +1,6 @@
-# TaskFlow 
+# TaskFlow AI
 
-TaskFlow is a modern task-management web application designed to help users plan work, track productivity, and stay focused. It includes a responsive dashboard, live task management, calendar planning, analytics, Pomodoro focus mode, and an AI-assistant interface.
+TaskFlow AI is a modern task-management web application designed to help users plan work, track productivity, and stay focused. It includes a responsive dashboard, live task management, calendar planning, analytics, Pomodoro focus mode, and an AI-assistant interface.
 
 ## Features
 
@@ -62,6 +62,16 @@ You can also open `frontend/index.html` directly. In this mode, TaskFlow AI auto
 ```bash
 npm test
 ```
+
+## MongoDB Atlas setup
+
+The app works without a database for UI testing, but tasks reset when the server restarts. To persist tasks, create a MongoDB Atlas database and add the following environment variable in Render:
+
+```text
+MONGODB_URI=mongodb+srv://YOUR_DATABASE_USERNAME:YOUR_DATABASE_PASSWORD@YOUR_CLUSTER.mongodb.net/taskflow?retryWrites=true&w=majority
+```
+
+For local use, copy `.env.example` to `.env` and set your own connection string. Do not commit `.env` or share its credentials.
 
 ## API Endpoints
 
